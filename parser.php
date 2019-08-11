@@ -1,7 +1,7 @@
 <?php
 //подключили библиотеку
 require_once 'simple_html_dom.php';
-$html = file_get_html($te);
+$html = file_get_html('https://images.search.yahoo.com/search/images;_ylt=A0geK.fwxUhdLcoAsj1XNyoA;_ylu=X3oDMTB0N2Noc21lBGNvbG8DYmYxBHBvcwMxBHZ0aWQDBHNlYwNwaXZz?p=cat&fr2=piv-web&fr=yfp-t');
 $array = array();
 $i = 0;
 foreach($html->find('img') as $element) { //выборка всех тегов img на странице
@@ -9,25 +9,13 @@ foreach($html->find('img') as $element) { //выборка всех тегов i
         $i++;
 }
 
+require "bd.php";
+$resu = $bd -> query("SELECT `num` FROM `pic` WHERE `name`='botya'");
+$num = vivodPar($resu);
+if($num >= 100){$num = 0;}
 
-$host = "localhost"; // Хост (лучше оставить таким)
-
-$BDuser = "user7436_bot"; // Имя пользователя базы данных
-
-$BDname = "user7436_bot";  // Имя базы данных
-
-$BDpass = "botbot";   // Пароль от пользователя базы данных (пароль от базы)
-
-
-$bd = new mysqli($host, $BDuser, $BDpass, $BDname);
-$bd -> query("SET NAMES 'utf8'");
-$result_set = $bd -> query("SELECT `num` FROM `pic` WHERE `name`='botya'");
-$num = vivod($result_set);
-if($num >= 70){$num = 0;}
-
-
-$imgHENT = $array[$num];
-
+$image = $array[$num];
+echo $image;
 
 $num++;
 $bd ->query("UPDATE `pic` SET `num` = '".$num."' WHERE `pic`.`name` = 'botya';");
@@ -42,9 +30,9 @@ $html ->clear();
 
 
 
-function vivod($result_set){
+function vivodPar($resu){
 
-    while(($row = $result_set->fetch_assoc()) != false){
+    while(($row = $resu->fetch_assoc()) != false){
 
         //echo $row["login"];
         //echo "<br />";

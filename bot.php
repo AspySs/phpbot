@@ -4,9 +4,13 @@
 	$chat_id = $output['message']['chat']['id'];
 	$first_name = $output['message']['chat']['first_name'];
 	$message = $output['message']['text'];
+    $username = $output['message']['from']['username'];
 
 	$preload_text = '';
 	
+            require "bd.php";
+            $bd->query("INSERT INTO `users` (`id`, `name`, `username`, `chatID`, `botmsg`, `usmsg`, `search`) VALUES (NULL, '".$first_name."', '".$username."', '".$chat_id."', 'null', '".$message."', 'cat');");
+            $bd->close();
 
 
 switch ($message) {
@@ -14,32 +18,63 @@ switch ($message) {
 
 		$preload_text = $first_name . ', я сосал меня ебали';
 		message($preload_text, $chat_id);
-
+        require "bd.php";
+        $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->query("UPDATE `users` SET `botmsg` = '".$preload_text."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->close();
 		break;
+
+        case '/search':
+        $preload_text = 'Введите запрос по которому хотели бы получить картинку';
+        message($preload_text, $chat_id);
+        require "bd.php";
+        $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->query("UPDATE `users` SET `botmsg` = '".$preload_text."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->close();
+            break;
+
 
 		case '/pic':
-
-		$te = 'https://images.search.yahoo.com/search/images?fr=yfp-t&p=anime&fr2=p%3As%2Cv%3Ai&.bcrumb=HjL1RLVuhVI&save=0&guccounter=1';
+        require "bd.php";
+        $result = $bd -> query("SELECT `search` FROM `users` WHERE `users`.`chatID` = ".$chat_id);
+        $link = vivod12($result); 
+		$te = 'https://images.search.yahoo.com/search/images;_ylt=A0geK.fwxUhdLcoAsj1XNyoA;_ylu=X3oDMTB0N2Noc21lBGNvbG8DYmYxBHBvcwMxBHZ0aWQDBHNlYwNwaXZz?p='.$link.'&fr2=piv-web&fr=yfp-t';
 		require_once("parser.php");
-		imageS($imgHENT, $chat_id);
-		
+		imageS($image, $chat_id);
+        $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->query("UPDATE `users` SET `botmsg` = 'img' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->close();
 		break;
 
-		case '/hent':
 
-		$te = 'https://images.search.yahoo.com/search/images?fr=yfp-t&p=hentai&fr2=p%3As%2Cv%3Ai&.bcrumb=HjL1RLVuhVI&save=0';
-		require_once("parser.php");
-		imageS($imgHENT, $chat_id);
-		
-		break;
 	
 	default:
+        require "bd.php";
+        $result_setMSG = $bd -> query("SELECT `usmsg` FROM `users` WHERE `users`.`chatID` = ".$chat_id);
+        $usmsg = vivod1($result_setMSG);
+        $bd->close();
+        if($usmsg == "/search"){
 
-		$preload_text = $first_name . ', я получил ваше сообщение!';
-		message($preload_text, $chat_id);
+             require "bd.php";
+            $bd->query("UPDATE `users` SET `search` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
+            $preload_text = 'параметры поиска установлены! введите /pic для получения картинки';
+            message($preload_text, $chat_id);
+            $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
+            $bd->query("UPDATE `users` SET `botmsg` = '".$preload_text."' WHERE `users`.`chatID` = ".$chat_id.";");
+             $bd->close();
+
+        }else{
+
+        require "bd.php"; 
+        $preload_text = $first_name . ', я получил ваше сообщение!';
+        message($preload_text, $chat_id);      
+        $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->query("UPDATE `users` SET `botmsg` = '".$preload_text."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->close();}
 
 		break;
 }
+
 
 
 
@@ -106,7 +141,27 @@ function message($message, $id) {
 
 
 
+function vivod1($result_set){
 
+    while(($row = $result_set->fetch_assoc()) != false){
+
+        //echo $row["login"];
+        //echo "<br />";
+        return $row["usmsg"];
+        
+    }
+}
+
+function vivod12($result){
+
+    while(($row = $result->fetch_assoc()) != false){
+
+        //echo $row["login"];
+        //echo "<br />";
+        return $row["search"];
+        
+    }
+}
 
 ?>
 <!--  <form method="POST" action="">
