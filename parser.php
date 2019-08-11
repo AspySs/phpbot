@@ -1,7 +1,7 @@
 <?php
 //подключили библиотеку
 require_once 'simple_html_dom.php';
-$html = file_get_html('https://images.search.yahoo.com/search/images;_ylt=A0geK.fwxUhdLcoAsj1XNyoA;_ylu=X3oDMTB0N2Noc21lBGNvbG8DYmYxBHBvcwMxBHZ0aWQDBHNlYwNwaXZz?p=cat&fr2=piv-web&fr=yfp-t');
+$html = file_get_html($te);
 $array = array();
 $i = 0;
 foreach($html->find('img') as $element) { //выборка всех тегов img на странице

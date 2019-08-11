@@ -5,15 +5,45 @@
 	$first_name = $output['message']['chat']['first_name'];
 	$message = $output['message']['text'];
     $username = $output['message']['from']['username'];
-
 	$preload_text = '';
-	
+	  
+        if(!empty($output['callback_query'])){
+
+             $chat_id = $output['callback_query']['message']['chat']['id'];
+             $first_name = $output['callback_query']['from']['first_name'];
+             $message = $output['callback_query']['data'];
+             $username = $output['message']['from']['username'];
+          }
+
             require "bd.php";
             $bd->query("INSERT INTO `users` (`id`, `name`, `username`, `chatID`, `botmsg`, `usmsg`, `search`) VALUES (NULL, '".$first_name."', '".$username."', '".$chat_id."', 'null', '".$message."', 'cat');");
             $bd->close();
 
 
+
 switch ($message) {
+
+
+        case "/start":
+
+        $preload_text = $first_name . ', ты щас быканул или мне показалосб?';
+        $keyboard = [
+    'inline_keyboard' => [
+        [
+            ['text' => 'hello', 'callback_data' => '/hello'],
+            ['text' => 'search', 'callback_data' => '/search'],
+            ['text' => 'pic (double pls)', 'callback_data' => '/pic']
+        ]
+    ]
+];
+        $encodedKeyboard = json_encode($keyboard);
+        message1($preload_text, $chat_id, $encodedKeyboard);
+        require "bd.php";
+        $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->query("UPDATE `users` SET `botmsg` = '".$preload_text."' WHERE `users`.`chatID` = ".$chat_id.";");
+        $bd->close();
+        break;
+
 	case "/hello":
 
 		$preload_text = $first_name . ', я сосал меня ебали';
@@ -47,31 +77,51 @@ switch ($message) {
 		break;
 
 
+
+
 	
 	default:
         require "bd.php";
         $result_setMSG = $bd -> query("SELECT `usmsg` FROM `users` WHERE `users`.`chatID` = ".$chat_id);
         $usmsg = vivod1($result_setMSG);
         $bd->close();
-        if($usmsg == "/search"){
 
-             require "bd.php";
+
+
+            switch ($usmsg) {
+                case '/search':
+
+
+
+            require "bd.php";
             $bd->query("UPDATE `users` SET `search` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
-            $preload_text = 'параметры поиска установлены! введите /pic для получения картинки';
+            $preload_text = 'параметры поиска установлены! введите /pic (два раза, соре за баг) для получения картинки';
             message($preload_text, $chat_id);
             $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
             $bd->query("UPDATE `users` SET `botmsg` = '".$preload_text."' WHERE `users`.`chatID` = ".$chat_id.";");
              $bd->close();
 
-        }else{
+
+
+                    break;
+                
+                default:
+
+
 
         require "bd.php"; 
         $preload_text = $first_name . ', я получил ваше сообщение!';
         message($preload_text, $chat_id);      
         $bd->query("UPDATE `users` SET `usmsg` = '".$message."' WHERE `users`.`chatID` = ".$chat_id.";");
         $bd->query("UPDATE `users` SET `botmsg` = '".$preload_text."' WHERE `users`.`chatID` = ".$chat_id.";");
-        $bd->close();}
+        $bd->close();
 
+
+
+                    break;
+            }
+        
+        
 		break;
 }
 
@@ -117,6 +167,28 @@ function imageS($image, $id) {
 }
 
 
+function message1($message, $id, $encodedKeyboard) {
+    $ch = curl_init();
+    curl_setopt_array(
+        $ch,
+        array(
+            CURLOPT_URL => 'https://api.telegram.org/bot'.'649942651:AAFp6N8kdrr3ycCjvomt0LPSGX2odsrGIyk'.'/sendMessage',
+            CURLOPT_POST => TRUE,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_POSTFIELDS => array(
+                'chat_id' => $id,
+                'text' => $message,
+                'reply_markup' => $encodedKeyboard,
+            ),
+            CURLOPT_PROXY => '31.220.51.173:80',
+            CURLOPT_PROXYTYPE => CURLPROXY_HTTP,
+            CURLOPT_PROXYAUTH => CURLAUTH_BASIC,
+        )
+    );
+    curl_exec($ch);
+}
+
 
 function message($message, $id) {
     $ch = curl_init();
@@ -139,7 +211,26 @@ function message($message, $id) {
     curl_exec($ch);
 }
 
-
+function button($keyboard, $id) {
+    $ch = curl_init();
+    curl_setopt_array(
+        $ch,
+        array(
+            CURLOPT_URL => 'https://api.telegram.org/bot'.'649942651:AAFp6N8kdrr3ycCjvomt0LPSGX2odsrGIyk'.'/sendMessage',
+            CURLOPT_POST => TRUE,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_POSTFIELDS => array(
+                'chat_id' => $id,
+                'reply_markup' => json_encode($keyboard),
+            ),
+            CURLOPT_PROXY => '31.220.51.173:80',
+            CURLOPT_PROXYTYPE => CURLPROXY_HTTP,
+            CURLOPT_PROXYAUTH => CURLAUTH_BASIC,
+        )
+    );
+    curl_exec($ch);
+}
 
 function vivod1($result_set){
 
@@ -162,6 +253,17 @@ function vivod12($result){
         
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 ?>
 <!--  <form method="POST" action="">
